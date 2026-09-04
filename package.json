@@ -1,0 +1,42 @@
+{
+  "name": "noor-al-hidayah",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "seed": "tsc -p tsconfig.seed.json && node .seed-dist/scripts/seed.js",
+    "seed:reset": "tsc -p tsconfig.seed.json && node .seed-dist/scripts/seed.js --reset",
+    "admin:create": "tsx scripts/create-admin.ts",
+    "test:integration": "tsx scripts/integration-test.ts"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "latest",
+    "bcryptjs": "latest",
+    "jose": "latest",
+    "lucide-react": "latest",
+    "mongoose": "latest",
+    "next": "16.3.3",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-hook-form": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.3.3",
+    "prettier": "latest",
+    "tailwindcss": "latest",
+    "tsx": "latest",
+    "typescript": "^5.9.0",
+    "vitest": "latest"
+  }
+}

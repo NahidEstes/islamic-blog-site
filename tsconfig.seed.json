@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "noEmit": false,
+    "outDir": ".seed-dist",
+    "rootDir": "."
+  },
+  "include": [
+    "models/**/*.ts",
+    "scripts/seed.ts"
+  ]
+}
