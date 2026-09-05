@@ -41,7 +41,20 @@ export default async function RootLayout({
     url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
   };
   return (
-    <html lang="en" className={bangla.variable}>
+    <html
+      lang="en"
+      className={bangla.variable}
+      data-theme="dark"
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('noor-theme');document.documentElement.dataset.theme=t==='light'?'light':'dark';document.documentElement.style.colorScheme=document.documentElement.dataset.theme}catch(e){}"
+          }}
+        />
+      </head>
       <body>
         <a href="#main-content" className="skip-link">
           Skip to content

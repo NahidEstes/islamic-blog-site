@@ -530,8 +530,12 @@ async function main() {
     body: { featuredImage: media.url },
     cookie: adminCookie
   });
+  result = await call("/");
+  assert.ok(result.text.includes('data-theme="dark"'));
+  assert.ok(result.text.includes("noor-theme"));
+  assert.ok(result.text.includes("Switch to light mode"));
+  passed += 3;
   for (const route of [
-    "/",
     "/articles",
     "/categories",
     "/tags",

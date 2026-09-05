@@ -8,12 +8,14 @@ The existing Next.js project was updated in place. No existing database was rese
 - `npm run typecheck`: passed.
 - `npm run build`: passed.
 - `npm run test`: 15 unit tests passed.
-- `npm run test:integration`: 131 production HTTP/MongoDB workflow checks passed against an isolated temporary MongoDB instance.
+- `npm run test:integration`: 134 production HTTP/MongoDB workflow checks passed against an isolated temporary MongoDB instance.
 - Seed compilation with `tsc -p tsconfig.seed.json`: passed.
 
 The integration run covers registration, login/logout, fresh profile data, admin authorization, article create/edit/publish/archive/delete, private drafts, preserving language/tags during status changes, Bangla article URLs, bookmarks and likes with duplicate protection, comments and moderation, quote verification and CRUD, category CRUD, bilingual search, newsletter deduplication, contact storage, GridFS image upload/read, settings, all public/admin pages, removed public routes, and suspended-account enforcement.
 
 The article-detail checks also cover database-backed author details, related and popular articles, category counts, manually entered reference blocks, and the absence of an article-page newsletter.
+
+Theme checks cover the server-rendered dark default, the header toggle, and the persisted `noor-theme` preference hook. The shared color tokens cover both the requested dark palette and the preserved light palette.
 
 HTML responses are checked for server-rendering errors, not just HTTP status. Next.js may stream a not-found response with HTTP 200; draft/archive tests additionally check the not-found content, noindex metadata, and absence of the private article title.
 

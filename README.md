@@ -29,6 +29,11 @@ For a **development database only**, `npm run seed` adds bilingual sample articl
 
 - **Articles:** Create or edit, choose English/Bangla, category, comma-separated tags, featured image, featured status, and SEO fields. Status is Draft, Published, or Archived. Changing to Draft unpublishes immediately. Delete permanently removes an article and its bookmarks, likes, and comments.
 - **Content format:** Plain text with blank lines between paragraphs. Start a heading with `## `. For a manually verified quotation or reference, start every line in that block with `>` and finish with `> Source: your reference`. HTML is displayed as text; full Markdown is intentionally not supported. The site never fills in religious quotations automatically.
+
+## Theme
+
+Dark mode is the first-visit default. The sun/moon button in the header switches between dark and light mode, and the browser stores the choice under `noor-theme`. The light theme keeps the original site palette.
+
 - **Images:** Upload PNG/JPEG/WebP (up to 5 MB), choose a project `/images/` path, or use an HTTPS Cloudinary image URL. Uploads are stored in MongoDB GridFS, not a temporary server filesystem. Uploaded images are publicly readable; do not upload private files. Unused uploads are not automatically deleted.
 - **Categories/Tags:** Create, rename, and delete. Renaming updates the corresponding article labels. Used topics cannot be deleted until their articles are reassigned. Labels typed in the article editor are added to the topic directory automatically.
 - **Quotes:** Enter exact text, scholar name, and reference; optionally add a source URL. Confirm that you checked the source before publishing. Never invent quotations. The seeded placeholder cannot be published.
@@ -91,4 +96,5 @@ Password recovery, email verification, email campaigns, and OAuth are outside th
 ## Image source
 
 The featured photograph was generated with the built-in image tool and saved to `public/images/blog-books.png`. Prompt: a photorealistic portrait still life of green and muted gold clothbound books beside a leafy plant on pale wood, warm natural light and Islamic geometric window shadows, neutral white interior, no people, writing, calligraphy, logos, watermark, or UI. The full generation prompt is recorded in `ASSETS.md`.
+
 # islamic-blog-site

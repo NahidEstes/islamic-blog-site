@@ -3,6 +3,7 @@ import { BookOpen, Search, UserRound } from "lucide-react";
 import { MobileMenu } from "@/components/MobileMenu";
 import { getSettings } from "@/lib/blog";
 import { getSession } from "@/lib/auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const links = [
   ["Home", "/"],
@@ -31,6 +32,7 @@ export async function SiteHeader() {
           ))}
         </nav>
         <div className="nav-actions">
+          <ThemeToggle />
           <Link className="icon-link" href="/search" aria-label="Search">
             <Search size={22} />
           </Link>
