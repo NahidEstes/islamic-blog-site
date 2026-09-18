@@ -20,9 +20,6 @@ export function decodeArticleSlug(value: string) {
     return null;
   }
 }
-export function estimateReadingTime(content: string) {
-  return Math.max(1, Math.ceil(content.trim().split(/\s+/).length / 220));
-}
 export function formatDate(value: string | Date) {
   return new Intl.DateTimeFormat("en", {
     month: "short",

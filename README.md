@@ -30,6 +30,15 @@ For a **development database only**, `npm run seed` adds bilingual sample articl
 - **Articles:** Create or edit, choose English/Bangla, category, comma-separated tags, featured image, featured status, and SEO fields. Status is Draft, Published, or Archived. Changing to Draft unpublishes immediately. Delete permanently removes an article and its bookmarks, likes, and comments.
 - **Content format:** Plain text with blank lines between paragraphs. Start a heading with `## `. For a manually verified quotation or reference, start every line in that block with `>` and finish with `> Source: your reference`. HTML is displayed as text; full Markdown is intentionally not supported. The site never fills in religious quotations automatically.
 
+## Learning section
+
+- `/learn` is the learning hub. Duas are the first active module; Quran, Hadith, Arabic Stories, Vocabulary, and Practice are intentionally lightweight future-module placeholders rather than fabricated content.
+- `/learn/duas` uses verified, published database records for the featured item, category counts, popular items, and signed-in learning progress. Individual lessons live at `/learn/duas/[slug]`.
+- In **Admin → Learn**, create reusable module categories. In **Admin → Duas**, create, edit, preview, publish, unpublish/archive, or permanently delete a Dua.
+- A Dua stores its title, complete Arabic text, Bangla meaning, optional transliteration, category, source, reference, optional source/audio URL, and ordered phrase-by-phrase meanings. Reorder segments in the editor with the up/down controls.
+- Publishing is deliberately blocked until an administrator checks **Source checked by an administrator**. The application never supplies Quran, Hadith, Dua, reference, or scholar content on its own.
+- Signed-in readers can start, continue, complete, and save a Dua. Progress and favorites are stored in MongoDB and appear under **Saved duas & learning progress** in the profile.
+
 ## Theme
 
 Dark mode is the first-visit default. The sun/moon button in the header switches between dark and light mode, and the browser stores the choice under `noor-theme`. The light theme keeps the original site palette.
@@ -55,9 +64,9 @@ Popular articles use stored view counts with a lightweight per-process/IP rate l
 
 - `app/`: App Router pages, admin/account pages, API handlers, metadata/sitemap.
 - `components/`: Small reader, form, navigation, and admin components.
-- `lib/blog.ts`: Public MongoDB queries and default settings.
+- `lib/blog.ts`, `lib/learn.ts`: Public article and learning queries.
 - `lib/auth.ts`, `lib/api.ts`, `lib/validation.ts`: Sessions, access checks, input validation.
-- `models/`: Existing User, Article, Taxonomy, Site, Communication models; new Interaction and Quote schemas.
+- `models/`: Existing blog models plus Dua, LearnCategory, and persistent DuaProgress schemas.
 - `data/demo.ts`: Safe bilingual demonstration articles.
 - `scripts/`: Seed, first-admin creation, and isolated integration test.
 - `public/fonts/`: Self-hosted Noto Serif Bengali and its OFL license.

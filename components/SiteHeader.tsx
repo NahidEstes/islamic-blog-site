@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 const links = [
   ["Home", "/"],
   ["Articles", "/articles"],
+  ["Learn", "/learn"],
   ["Categories", "/categories"],
   ["About", "/about"],
   ["Contact", "/contact"]

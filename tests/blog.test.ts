@@ -10,7 +10,8 @@ import {
   articleUpdateSchema,
   quoteSchema,
   imageSourceSchema,
-  taxonomySchema
+  taxonomySchema,
+  duaSchema
 } from "../lib/validation";
 import { parseArticleContent } from "../lib/article-content";
 
@@ -92,6 +93,26 @@ describe("bilingual blog", () => {
   it("accepts Bengali categories without creating a second taxonomy model", () => {
     expect(
       taxonomySchema.safeParse({ name: "পাঠাভ্যাস", type: "tag" }).success
+    ).toBe(true);
+  });
+  it("requires verification before a dua can be published", () => {
+    const placeholder = {
+      title: "TEST PLACEHOLDER Dua",
+      arabicText: "[ADMIN MUST REPLACE]",
+      banglaMeaning: "পরীক্ষার প্লেসহোল্ডার",
+      category: "Testing",
+      source: "Test fixture",
+      reference: "TEST-ONLY",
+      status: "published",
+      verified: false,
+      segments: []
+    };
+    expect(duaSchema.safeParse(placeholder).success).toBe(false);
+    expect(
+      duaSchema.safeParse({ ...placeholder, status: "draft" }).success
+    ).toBe(true);
+    expect(
+      duaSchema.safeParse({ ...placeholder, verified: true }).success
     ).toBe(true);
   });
   it("renders only manually marked reference blocks with an explicit source", () => {

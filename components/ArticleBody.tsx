@@ -1,6 +1,23 @@
-import { parseArticleContent } from "@/lib/article-content";
+import { parseArticleContent } from "../lib/article-content";
+import {
+  sanitizeArticleHtml,
+  type ArticleContentFormat
+} from "../lib/article-html";
 
-export function ArticleBody({ content }: { content: string }) {
+export function ArticleBody({
+  content,
+  contentFormat = "plain"
+}: {
+  content: string;
+  contentFormat?: ArticleContentFormat;
+}) {
+  if (contentFormat === "rich-html")
+    return (
+      <div
+        className="article-prose article-prose-rich"
+        dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(content) }}
+      />
+    );
   return (
     <div className="article-prose">
       {parseArticleContent(content).map((block, index) => {

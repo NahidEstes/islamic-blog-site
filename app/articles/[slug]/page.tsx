@@ -120,7 +120,10 @@ export default async function ArticlePage({
               />
             </div>
             <div lang={a.language}>
-              <ArticleBody content={a.content} />
+              <ArticleBody
+                content={a.content}
+                contentFormat={a.contentFormat}
+              />
             </div>
             {!!a.tags?.length && (
               <nav className="tag-list article-tags" aria-label="Article tags">

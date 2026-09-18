@@ -6,6 +6,13 @@ const ArticleSchema = new Schema(
     slug: { type: String, required: true, unique: true, index: true },
     excerpt: { type: String, required: true, maxlength: 400 },
     content: { type: String, required: true },
+    contentFormat: {
+      type: String,
+      enum: ["plain", "rich-html"],
+      default: "plain",
+      index: true
+    },
+    searchText: { type: String, default: "" },
     featuredImage: String,
     locale: { type: String, enum: ["en", "bn"], default: "en" },
     author: {

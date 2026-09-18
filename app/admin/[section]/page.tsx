@@ -14,8 +14,12 @@ import { SettingsEditor } from "@/components/admin/SettingsEditor";
 import { TaxonomyManager } from "@/components/admin/TaxonomyManager";
 import { QuoteEditor } from "@/components/admin/QuoteEditor";
 import { RecordActions } from "@/components/admin/RecordActions";
+import { LearnCategoryManager } from "@/components/admin/LearnCategoryManager";
+import { Dua, LearnCategory } from "@/models/Learn";
 const titles: Record<string, string> = {
   articles: "Articles",
+  learn: "Learn Categories",
+  duas: "Duas",
   categories: "Categories",
   tags: "Tags",
   quotes: "Quotes",
@@ -41,6 +45,48 @@ export default async function AdminSection({
   const page = pageNumber(query.page);
   const pageSize = 20;
   await connectToDatabase();
+  if (section === "learn") {
+    const categories = await LearnCategory.find()
+      .sort({ module: 1, order: 1, name: 1 })
+      .lean();
+    return (
+      <>
+        <div className="admin-title">
+          <div>
+            <h1>Learn Categories</h1>
+            <p>
+              Simple shared categories for current and future learning modules.
+            </p>
+          </div>
+        </div>
+        <details className="panel" style={{ marginBottom: 24 }}>
+          <summary>Create learning category</summary>
+          <LearnCategoryManager />
+        </details>
+        <div className="search-results">
+          {categories.map((category) => (
+            <section className="panel" key={String(category._id)}>
+              <h2>{category.name}</h2>
+              <p className="small-note">
+                {category.module} ·{" "}
+                {category.published ? "published" : "hidden"} · order{" "}
+                {category.order}
+              </p>
+              <LearnCategoryManager
+                initial={JSON.parse(JSON.stringify(category))}
+              />
+            </section>
+          ))}
+        </div>
+        {!categories.length && (
+          <p className="empty-state">
+            No managed learning categories yet. The public Duas page uses its
+            basic topic labels until you add these.
+          </p>
+        )}
+      </>
+    );
+  }
   if (section === "settings" || section === "homepage") {
     const settings = await getSettings();
     return (
@@ -58,7 +104,7 @@ export default async function AdminSection({
     );
   }
   const statusOptions =
-    section === "articles"
+    section === "articles" || section === "duas"
       ? ["draft", "published", "archived"]
       : section === "comments"
         ? ["pending", "approved", "hidden"]
@@ -75,17 +121,19 @@ export default async function AdminSection({
   const model =
     section === "articles"
       ? Article
-      : section === "quotes"
-        ? Quote
-        : section === "comments"
-          ? Comment
-          : section === "categories" || section === "tags"
-            ? Taxonomy
-            : section === "users"
-              ? User
-              : section === "messages"
-                ? ContactMessage
-                : NewsletterSubscriber;
+      : section === "duas"
+        ? Dua
+        : section === "quotes"
+          ? Quote
+          : section === "comments"
+            ? Comment
+            : section === "categories" || section === "tags"
+              ? Taxonomy
+              : section === "users"
+                ? User
+                : section === "messages"
+                  ? ContactMessage
+                  : NewsletterSubscriber;
   const total = await model.countDocuments(filter);
   let rowQuery = model
     .find(filter)
@@ -146,6 +194,11 @@ export default async function AdminSection({
         {section === "articles" && (
           <Link className="button button-green" href="/admin/articles/new">
             Create article
+          </Link>
+        )}
+        {section === "duas" && (
+          <Link className="button button-green" href="/admin/duas/new">
+            Create Dua
           </Link>
         )}
       </div>
@@ -251,6 +304,42 @@ export default async function AdminSection({
                     endpoint={"/api/articles/" + id}
                     status={row.status}
                     statuses={["draft", "published", "archived"]}
+                  />
+                </div>
+              </section>
+            );
+          if (section === "duas")
+            return (
+              <section className="panel" key={id}>
+                <h2>{row.title}</h2>
+                <p className="small-note">
+                  {row.category} · {row.status} ·{" "}
+                  {row.verified ? "verified" : "not verified"}
+                </p>
+                <div className="action-row">
+                  <Link
+                    className="button button-outline"
+                    href={"/admin/duas/" + id + "/edit"}
+                  >
+                    Edit Dua
+                  </Link>
+                  <Link
+                    className="button button-outline"
+                    href={"/admin/duas/" + id + "/preview"}
+                  >
+                    Preview
+                  </Link>
+                  {row.status === "published" && row.verified && (
+                    <Link
+                      className="button button-outline"
+                      href={"/learn/duas/" + encodeURIComponent(row.slug)}
+                    >
+                      Open public page
+                    </Link>
+                  )}
+                  <RecordActions
+                    endpoint={"/api/admin/duas/" + id}
+                    allowDelete
                   />
                 </div>
               </section>

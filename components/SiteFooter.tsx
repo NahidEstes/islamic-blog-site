@@ -18,6 +18,7 @@ export async function SiteFooter() {
         <div>
           <h3>Explore</h3>
           <Link href="/articles">Articles</Link>
+          <Link href="/learn">Learn</Link>
           <Link href="/categories">Categories</Link>
           <Link href="/tags">Tags</Link>
         </div>

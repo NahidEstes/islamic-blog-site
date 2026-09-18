@@ -5,6 +5,7 @@ import { ContactMessage, NewsletterSubscriber } from "@/models/Communication";
 import { Comment } from "@/models/Interaction";
 import { ActivityLog } from "@/models/Site";
 import { User } from "@/models/User";
+import { Dua } from "@/models/Learn";
 
 export default async function AdminDashboard() {
   let stats = {
@@ -13,7 +14,9 @@ export default async function AdminDashboard() {
     drafts: 0,
     comments: 0,
     messages: 0,
-    subscribers: 0
+    subscribers: 0,
+    publishedDuas: 0,
+    draftDuas: 0
   };
   let activity: Array<{ _id: string; action: string; createdAt: Date }> = [];
   if (isDatabaseConfigured()) {
@@ -24,7 +27,9 @@ export default async function AdminDashboard() {
       Article.countDocuments({ status: "draft" }),
       Comment.countDocuments(),
       ContactMessage.countDocuments({ status: "unread" }),
-      NewsletterSubscriber.countDocuments({ status: "active" })
+      NewsletterSubscriber.countDocuments({ status: "active" }),
+      Dua.countDocuments({ status: "published", verified: true }),
+      Dua.countDocuments({ status: "draft" })
     ]);
     stats = {
       users: counts[0],
@@ -32,7 +37,9 @@ export default async function AdminDashboard() {
       drafts: counts[2],
       comments: counts[3],
       messages: counts[4],
-      subscribers: counts[5]
+      subscribers: counts[5],
+      publishedDuas: counts[6],
+      draftDuas: counts[7]
     };
     activity = await ActivityLog.find().sort({ createdAt: -1 }).limit(8).lean();
   }
@@ -42,7 +49,9 @@ export default async function AdminDashboard() {
     ["Draft articles", stats.drafts],
     ["Comments", stats.comments],
     ["Unread messages", stats.messages],
-    ["Subscribers", stats.subscribers]
+    ["Subscribers", stats.subscribers],
+    ["Published duas", stats.publishedDuas],
+    ["Draft duas", stats.draftDuas]
   ];
   return (
     <>

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession, isAdmin } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import { articleSchema } from "@/lib/validation";
-import { estimateReadingTime, pageNumber, slugify } from "@/lib/utils";
+import { pageNumber, slugify } from "@/lib/utils";
+import {
+  estimateArticleReadingTime,
+  prepareArticleContent
+} from "@/lib/article-html";
 import { authorize, apiError, HttpError } from "@/lib/api";
 import { Article } from "@/models/Article";
 import { ActivityLog } from "@/models/Site";
@@ -42,6 +46,17 @@ export async function POST(request: NextRequest) {
   try {
     const user = await authorize(request, true);
     const { language, ...data } = articleSchema.parse(await request.json());
+    const prepared = prepareArticleContent(data.content, data.contentFormat);
+    if (prepared.tooShort)
+      throw new HttpError(
+        400,
+        "Article content must contain at least 50 visible characters."
+      );
+    if (prepared.tooLong)
+      throw new HttpError(
+        400,
+        "Article content is too long after formatting is cleaned."
+      );
     const base = slugify(data.title) || "article";
     await ensureTopics(data.category, data.tags);
     let slug = base;
@@ -49,10 +64,15 @@ export async function POST(request: NextRequest) {
     while (await Article.exists({ slug })) slug = base + "-" + suffix++;
     const article = await Article.create({
       ...data,
+      content: prepared.content,
+      searchText: prepared.visibleText,
       locale: language,
       slug,
       author: user.id,
-      readingTime: estimateReadingTime(data.content),
+      readingTime: estimateArticleReadingTime(
+        prepared.content,
+        data.contentFormat
+      ),
       publishedAt: data.status === "published" ? new Date() : undefined
     });
     await ActivityLog.create({

@@ -4,6 +4,8 @@ import { getSession, isAdmin } from "@/lib/auth";
 const links = [
   ["Dashboard", ""],
   ["Articles", "articles"],
+  ["Learn Categories", "learn"],
+  ["Duas", "duas"],
   ["Categories", "categories"],
   ["Tags", "tags"],
   ["Quotes", "quotes"],

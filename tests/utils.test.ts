@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { estimateReadingTime, slugify } from "../lib/utils";
+import { slugify } from "../lib/utils";
+import { estimateArticleReadingTime } from "../lib/article-html";
 import { articleSchema, contactSchema, loginSchema } from "../lib/validation";
 
 describe("content utilities", () => {
   it("creates predictable slugs", () =>
     expect(slugify("  Clear & Useful Title  ")).toBe("clear-useful-title"));
   it("never returns a zero-minute reading time", () =>
-    expect(estimateReadingTime("short")).toBe(1));
+    expect(estimateArticleReadingTime("short")).toBe(1));
 });
 
 describe("validation", () => {

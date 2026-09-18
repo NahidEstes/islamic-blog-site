@@ -19,7 +19,10 @@ export interface ArticleCardData {
   language?: "en" | "bn";
   tags?: string[];
   content?: string;
+  contentFormat?: "plain" | "rich-html";
   viewCount?: number;
+  likeCount?: number;
+  authorName?: string;
   title: string;
   slug: string;
   excerpt: string;

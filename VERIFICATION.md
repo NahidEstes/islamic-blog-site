@@ -1,4 +1,4 @@
-# Verification — 4 September 2026
+# Verification — 5 September 2026
 
 The existing Next.js project was updated in place. No existing database was reset or reseeded.
 
@@ -7,11 +7,13 @@ The existing Next.js project was updated in place. No existing database was rese
 - `npm run lint`: passed, no warnings.
 - `npm run typecheck`: passed.
 - `npm run build`: passed.
-- `npm run test`: 15 unit tests passed.
-- `npm run test:integration`: 134 production HTTP/MongoDB workflow checks passed against an isolated temporary MongoDB instance.
+- `npm run test`: 16 unit tests passed.
+- `npm run test:integration`: 178 production HTTP/MongoDB workflow checks passed against an isolated temporary MongoDB instance.
 - Seed compilation with `tsc -p tsconfig.seed.json`: passed.
 
 The integration run covers registration, login/logout, fresh profile data, admin authorization, article create/edit/publish/archive/delete, private drafts, preserving language/tags during status changes, Bangla article URLs, bookmarks and likes with duplicate protection, comments and moderation, quote verification and CRUD, category CRUD, bilingual search, newsletter deduplication, contact storage, GridFS image upload/read, settings, all public/admin pages, removed public routes, and suspended-account enforcement.
+
+Learn-module checks cover category create/rename/delete safety, Dua draft/create/edit/verify/publish/archive/delete, private draft and archive behavior, admin preview, Bengali and ordered phrase data, prevention of unverified publication, public hub/list/detail rendering, persistent start/progress/complete/favorite state after a fresh login, profile visibility, category counts, popular items, and cascade cleanup of Dua progress.
 
 The article-detail checks also cover database-backed author details, related and popular articles, category counts, manually entered reference blocks, and the absence of an article-page newsletter.
 
@@ -29,6 +31,11 @@ HTML responses are checked for server-rendering errors, not just HTTP status. Ne
 - Reader login, profile, saving/removing a bookmark, like state/count, and comment submission awaiting approval.
 - Saved article appears in the profile.
 - Simplified admin dashboard and navigation.
+- Desktop `/learn`, `/learn/duas`, and word-by-word lesson layouts using the existing theme and navigation.
+- Dark-mode default and a light-mode selection that remained active after reload.
+- `/learn/duas` and the lesson page at a 390 × 844 viewport: no horizontal document overflow; the lesson and progress panel stack into one column.
+- Fresh reader login restored the isolated test Dua as **in progress** and **saved**, including the correct next phrase.
+- No browser console warnings or errors on the checked learning flow.
 
 Test servers and MongoDB instances were separate from the user's existing database. The production integration processes were stopped after the final passing run. The development preview uses the existing project configuration.
 

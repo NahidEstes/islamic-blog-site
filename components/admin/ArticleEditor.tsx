@@ -2,11 +2,14 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { requestJson } from "@/lib/client";
+import { plainArticleToRichHtml } from "@/lib/article-content";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 type ArticleData = {
   _id?: string;
   title?: string;
   excerpt?: string;
   content?: string;
+  contentFormat?: "plain" | "rich-html";
   category?: string;
   tags?: string[];
   status?: string;
@@ -30,12 +33,31 @@ export function ArticleEditor({
   const [busy, setBusy] = useState(false);
   const [image, setImage] = useState(initial.featuredImage ?? "");
   const [language, setLanguage] = useState(initial.language ?? "en");
+  const originalPlainContent = initial.content ?? "";
+  const [content, setContent] = useState(originalPlainContent);
+  const [contentFormat, setContentFormat] = useState<"plain" | "rich-html">(
+    initial.contentFormat === "rich-html" || !initial._id
+      ? "rich-html"
+      : "plain"
+  );
+  const [converted, setConverted] = useState(false);
   async function save(form: FormData) {
     setBusy(true);
     setMessage("");
     try {
+      const visibleContent =
+        contentFormat === "rich-html"
+          ? (new DOMParser().parseFromString(content, "text/html").body
+              .textContent ?? "")
+          : content;
+      if (visibleContent.replace(/\s+/g, " ").trim().length < 50)
+        throw new Error(
+          "Article content must contain at least 50 visible characters."
+        );
       const data = {
         ...Object.fromEntries(form),
+        content,
+        contentFormat,
         featuredImage: image,
         tags: String(form.get("tags") ?? "")
           .split(",")
@@ -112,24 +134,91 @@ export function ArticleEditor({
         />
       </label>
       <label>
-        Content
-        <textarea
-          className="editor-body"
-          name="content"
-          lang={language}
-          defaultValue={initial.content}
-          required
-          minLength={50}
-          maxLength={100000}
-        />
+        Content format
+        <span className="content-format-label">
+          {contentFormat === "rich-html" ? "Rich text" : "Legacy plain text"}
+        </span>
       </label>
-      <p className="small-note">
-        Separate paragraphs with a blank line. Start a heading with ## followed
-        by a space. For a manually sourced quotation, start each line with &gt;
-        and end the block with &gt; Source: followed by its reference. Only
-        include quotations you have verified. HTML is displayed as text for
-        safety.
-      </p>
+      {contentFormat === "plain" ? (
+        <>
+          <label>
+            Content
+            <textarea
+              className="editor-body"
+              lang={language}
+              value={content}
+              required
+              minLength={50}
+              maxLength={100000}
+              onChange={(event) => setContent(event.target.value)}
+            />
+          </label>
+          <div className="legacy-editor-notice">
+            <div>
+              <strong>
+                This article still uses the legacy plain-text format.
+              </strong>
+              <p className="small-note">
+                Its existing ## headings and &gt; reference blocks will keep
+                rendering exactly as before.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="button button-outline"
+              onClick={() => {
+                setContent(plainArticleToRichHtml(content));
+                setContentFormat("rich-html");
+                setConverted(true);
+                setMessage(
+                  "Converted in the editor only. Review the formatting before saving."
+                );
+              }}
+            >
+              Convert to rich text
+            </button>
+          </div>
+          <p className="small-note">
+            Separate paragraphs with a blank line. Start a heading with ##
+            followed by a space. For a manually sourced quotation, start each
+            line with &gt; and end the block with &gt; Source: followed by its
+            reference.
+          </p>
+        </>
+      ) : (
+        <>
+          <RichTextEditor
+            key={`${initial._id ?? "new"}-${contentFormat}`}
+            content={content}
+            language={language}
+            onChange={setContent}
+            onNotice={setMessage}
+          />
+          <div className="rich-editor-note">
+            <p className="small-note">
+              Formatting is cleaned before saving. Source fonts, sizes, colors,
+              backgrounds, classes, inline styles, and pasted images are not
+              stored.
+            </p>
+            {converted && (
+              <button
+                type="button"
+                className="button button-ghost"
+                onClick={() => {
+                  setContent(originalPlainContent);
+                  setContentFormat("plain");
+                  setConverted(false);
+                  setMessage(
+                    "Conversion cancelled. The saved article was not changed."
+                  );
+                }}
+              >
+                Cancel conversion
+              </button>
+            )}
+          </div>
+        </>
+      )}
       <div className="form-row">
         <label>
           Category

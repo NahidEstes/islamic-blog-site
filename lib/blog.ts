@@ -8,6 +8,13 @@ import { User } from "@/models/User";
 import { demoArticles } from "@/data/demo";
 import { escapeRegex, pageNumber, decodeArticleSlug } from "@/lib/utils";
 import type { ArticleCardData } from "@/types";
+import {
+  articleSort,
+  mapCategoryCounts,
+  type ArticleSort
+} from "@/lib/article-directory";
+import { Types } from "mongoose";
+
 export const defaultSite = {
   name: "Noor Al-Hidayah",
   description: "Thoughtful Islamic articles in Bangla and English.",
@@ -39,6 +46,11 @@ export const getSettings = cache(async () => {
   } as { site: typeof defaultSite; homepage: typeof defaultHomepage };
 });
 export function toCard(item: Record<string, unknown>): ArticleCardData {
+  const author = item.author;
+  const authorName =
+    author && typeof author === "object" && "name" in author
+      ? String(author.name)
+      : "";
   return {
     id: String(item._id ?? ""),
     title: String(item.title),
@@ -53,9 +65,20 @@ export function toCard(item: Record<string, unknown>): ArticleCardData {
     featured: Boolean(item.featured),
     language: item.locale === "bn" ? "bn" : "en",
     tags: (item.tags ?? []) as string[],
-    viewCount: Number(item.viewCount ?? 0)
+    viewCount: Number(item.viewCount ?? 0),
+    likeCount: Number(item.likeCount ?? 0),
+    authorName
   };
 }
+
+type ArticleListResult = {
+  items: ArticleCardData[];
+  total: number;
+  page: number;
+  pages: number;
+  demo: boolean;
+};
+
 export async function listArticles(
   options: {
     q?: string;
@@ -65,8 +88,10 @@ export async function listArticles(
     limit?: number;
     popular?: boolean;
     author?: string;
+    locale?: string;
+    sort?: ArticleSort;
   } = {}
-) {
+): Promise<ArticleListResult> {
   const page = pageNumber(options.page);
   const limit = options.limit ?? 12;
   if (!isDatabaseConfigured()) {
@@ -74,14 +99,33 @@ export async function listArticles(
       (a) =>
         !options.author &&
         (!options.q ||
-          (a.title + " " + a.excerpt)
+          (a.title + " " + a.excerpt + " " + (a.content ?? ""))
             .toLowerCase()
             .includes(options.q.toLowerCase())) &&
         (!options.category || a.category === options.category) &&
-        (!options.tag || a.tags?.includes(options.tag))
+        (!options.tag || a.tags?.includes(options.tag)) &&
+        (!options.locale || a.language === options.locale)
     );
+    const selectedSort = options.popular
+      ? "most-read"
+      : (options.sort ?? "newest");
+    const sorted = [...all].sort((a, b) => {
+      if (selectedSort === "oldest")
+        return a.publishedAt.localeCompare(b.publishedAt);
+      if (selectedSort === "most-read")
+        return (
+          (b.viewCount ?? 0) - (a.viewCount ?? 0) ||
+          b.publishedAt.localeCompare(a.publishedAt)
+        );
+      if (selectedSort === "most-liked")
+        return (
+          (b.likeCount ?? 0) - (a.likeCount ?? 0) ||
+          b.publishedAt.localeCompare(a.publishedAt)
+        );
+      return b.publishedAt.localeCompare(a.publishedAt);
+    });
     return {
-      items: all.slice((page - 1) * limit, page * limit),
+      items: sorted.slice((page - 1) * limit, page * limit),
       total: all.length,
       page,
       pages: Math.ceil(all.length / limit),
@@ -95,26 +139,84 @@ export async function listArticles(
       $regex: escapeRegex(options.q.slice(0, 120)),
       $options: "i"
     };
-    filter.$or = ["title", "excerpt", "content", "category", "tags"].map(
-      (field) => ({ [field]: regex })
-    );
+    filter.$or = [
+      ...["title", "excerpt", "searchText", "category", "tags"].map(
+        (field) => ({ [field]: regex })
+      ),
+      {
+        $and: [{ contentFormat: { $ne: "rich-html" } }, { content: regex }]
+      }
+    ];
   }
   if (options.category) filter.category = options.category;
   if (options.tag) filter.tags = options.tag;
+  if (options.locale === "en" || options.locale === "bn")
+    filter.locale = options.locale;
   if (options.author) {
     if (!/^[a-f\d]{24}$/i.test(options.author))
       return { items: [], total: 0, page, pages: 0, demo: false };
     filter.author = options.author;
   }
+  const selectedSort = options.popular
+    ? "most-read"
+    : (options.sort ?? "newest");
+  if (selectedSort === "most-liked") {
+    const aggregateFilter = { ...filter } as Record<string, unknown>;
+    if (typeof aggregateFilter.author === "string")
+      aggregateFilter.author = new Types.ObjectId(aggregateFilter.author);
+    const [result] = await Article.aggregate([
+      { $match: aggregateFilter },
+      {
+        $lookup: {
+          from: "articlelikes",
+          localField: "_id",
+          foreignField: "article",
+          as: "likes"
+        }
+      },
+      { $addFields: { likeCount: { $size: "$likes" } } },
+      { $sort: articleSort("most-liked") },
+      {
+        $facet: {
+          items: [
+            { $skip: (page - 1) * limit },
+            { $limit: limit },
+            {
+              $lookup: {
+                from: "users",
+                localField: "author",
+                foreignField: "_id",
+                as: "author"
+              }
+            },
+            { $unwind: { path: "$author", preserveNullAndEmptyArrays: true } },
+            {
+              $project: {
+                likes: 0,
+                "author.email": 0,
+                "author.passwordHash": 0
+              }
+            }
+          ],
+          total: [{ $count: "value" }]
+        }
+      }
+    ]);
+    const total = Number(result?.total?.[0]?.value ?? 0);
+    return {
+      items: (result?.items ?? []).map(toCard),
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      demo: false
+    };
+  }
   const [rows, total] = await Promise.all([
     Article.find(filter)
-      .sort(
-        options.popular
-          ? { viewCount: -1, publishedAt: -1 }
-          : { publishedAt: -1 }
-      )
+      .sort(articleSort(selectedSort))
       .skip((page - 1) * limit)
       .limit(limit)
+      .populate({ path: "author", select: "name" })
       .lean(),
     Article.countDocuments(filter)
   ]);
@@ -126,6 +228,57 @@ export async function listArticles(
     demo: false
   };
 }
+
+export async function getPopularArticles(limit = 3) {
+  if (!isDatabaseConfigured())
+    return [...demoArticles]
+      .filter((article) => Number(article.viewCount ?? 0) > 0)
+      .sort(
+        (a, b) =>
+          Number(b.viewCount ?? 0) - Number(a.viewCount ?? 0) ||
+          b.publishedAt.localeCompare(a.publishedAt)
+      )
+      .slice(0, limit);
+  await connectToDatabase();
+  const rows = await Article.find({
+    status: "published",
+    viewCount: { $gt: 0 }
+  })
+    .sort({ viewCount: -1, publishedAt: -1 })
+    .limit(limit)
+    .populate({ path: "author", select: "name" })
+    .lean();
+  return rows.map(toCard);
+}
+
+export async function getCategoryDirectory(limit = 6) {
+  if (!isDatabaseConfigured()) {
+    const categories = await getTaxonomies("category");
+    const counts = categories.map((category) => ({
+      name: category.name,
+      count: demoArticles.filter(
+        (article) => article.category === category.name
+      ).length
+    }));
+    return mapCategoryCounts(categories, counts, limit);
+  }
+  await connectToDatabase();
+  const [categories, counts] = await Promise.all([
+    getTaxonomies("category"),
+    Article.aggregate([
+      { $match: { status: "published" } },
+      { $group: { _id: "$category", count: { $sum: 1 } } }
+    ])
+  ]);
+  return mapCategoryCounts(
+    categories,
+    counts.map((item) => ({
+      name: String(item._id),
+      count: Number(item.count)
+    })),
+    limit
+  );
+}
 export const getArticle = cache(async (slug: string) => {
   const decodedSlug = decodeArticleSlug(slug);
   if (decodedSlug === null) return null;
@@ -136,6 +289,7 @@ export const getArticle = cache(async (slug: string) => {
           ...a,
           id: "",
           content: a.content ?? a.excerpt,
+          contentFormat: "plain" as const,
           seoTitle: "",
           metaDescription: "",
           author: null
@@ -154,6 +308,10 @@ export const getArticle = cache(async (slug: string) => {
     ? {
         ...toCard(a),
         content: String(a.content),
+        contentFormat:
+          a.contentFormat === "rich-html"
+            ? ("rich-html" as const)
+            : ("plain" as const),
         seoTitle: String(a.seoTitle ?? ""),
         metaDescription: String(a.metaDescription ?? ""),
         author: author

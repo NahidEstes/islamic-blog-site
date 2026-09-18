@@ -3,6 +3,7 @@ import { connectToDatabase } from "@/lib/db";
 import { Article } from "@/models/Article";
 import { getTaxonomies } from "@/lib/blog";
 import { ArticleEditor } from "@/components/admin/ArticleEditor";
+import { sanitizeArticleHtml } from "@/lib/article-html";
 export default async function EditArticle({
   params
 }: {
@@ -13,6 +14,8 @@ export default async function EditArticle({
   await connectToDatabase();
   const article = await Article.findById(id).lean();
   if (!article) notFound();
+  const contentFormat =
+    article.contentFormat === "rich-html" ? "rich-html" : "plain";
   const categories = await getTaxonomies("category");
   const tags = await getTaxonomies("tag");
   return (
@@ -22,7 +25,15 @@ export default async function EditArticle({
       </div>
       <ArticleEditor
         initial={JSON.parse(
-          JSON.stringify({ ...article, language: article.locale ?? "en" })
+          JSON.stringify({
+            ...article,
+            content:
+              contentFormat === "rich-html"
+                ? sanitizeArticleHtml(String(article.content))
+                : article.content,
+            contentFormat,
+            language: article.locale ?? "en"
+          })
         )}
         categories={categories.map((c) => c.name)}
         tags={tags.map((t) => t.name)}

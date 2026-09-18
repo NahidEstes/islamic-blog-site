@@ -16,6 +16,7 @@ import { Bookmark } from "../models/Site";
 import { ArticleLike, Comment } from "../models/Interaction";
 import { Quote } from "../models/Quote";
 import { NewsletterSubscriber, ContactMessage } from "../models/Communication";
+import { Dua, DuaProgress, LearnCategory } from "../models/Learn";
 
 const port = 3210;
 const mongoPort = 27129;
@@ -179,7 +180,10 @@ async function main() {
     ArticleLike.init(),
     Comment.init(),
     User.init(),
-    Quote.init()
+    Quote.init(),
+    Dua.init(),
+    DuaProgress.init(),
+    LearnCategory.init()
   ]);
   let result = await call("/api/auth/login", {
     method: "POST",
@@ -287,6 +291,56 @@ async function main() {
   assert.ok(result.text.includes("Site Administrator"));
   assert.ok(!result.text.includes("A little knowledge, in your inbox."));
   passed += 11;
+  const richArticle = {
+    ...article,
+    title: "Rich editor integration article",
+    excerpt:
+      "A plain-text excerpt for the isolated rich article integration test.",
+    contentFormat: "rich-html",
+    content:
+      '<h2 style="color:red" onclick="bad()">Rich integration heading</h2><p>Visible searchable wording for the isolated rich editor workflow and reading-time test. <a href="javascript:bad()">Unsafe link label</a></p><table><tbody><tr><th scope="col">Field</th><td>Value</td></tr></tbody></table><script>bad()</script>',
+    language: "en",
+    featured: false,
+    seoTitle: "Rich editor integration test",
+    metaDescription: "Safe rich article rendering integration test."
+  };
+  result = await call("/api/articles", {
+    method: "POST",
+    body: richArticle,
+    cookie: adminCookie,
+    expected: 201
+  });
+  const richId = result.data.article._id;
+  const richSlug = result.data.article.slug;
+  const storedRich = await Article.findById(richId).lean();
+  assert.equal(storedRich?.contentFormat, "rich-html");
+  assert.ok(
+    !/script|onclick|style=|javascript:/i.test(storedRich?.content ?? "")
+  );
+  assert.ok(storedRich?.searchText.includes("Visible searchable wording"));
+  assert.ok(Number(storedRich?.readingTime) >= 1);
+  passed += 4;
+  await call("/api/articles/" + richId, {
+    method: "PATCH",
+    body: { status: "published" },
+    cookie: adminCookie
+  });
+  result = await call("/articles/" + richSlug);
+  assert.ok(result.text.includes("Rich integration heading"));
+  assert.ok(result.text.includes("<table>"));
+  assert.ok(!result.text.includes('onclick="bad()"'));
+  assert.ok(!result.text.includes('style="color:red"'));
+  assert.ok(!result.text.includes("javascript:bad()"));
+  passed += 3;
+  result = await call("/search?q=Visible%20searchable%20wording");
+  assert.ok(result.text.includes(richArticle.title));
+  passed++;
+  await call("/api/articles/" + richId, {
+    method: "DELETE",
+    cookie: adminCookie
+  });
+  assert.equal(await Article.countDocuments({ _id: richId }), 0);
+  passed++;
   await call("/api/articles/invalid", {
     method: "PATCH",
     body: { status: "draft" },
@@ -530,6 +584,150 @@ async function main() {
     body: { featuredImage: media.url },
     cookie: adminCookie
   });
+
+  result = await call("/api/admin/learn-categories", {
+    method: "POST",
+    cookie: adminCookie,
+    body: {
+      module: "duas",
+      name: "Test Learning Topic",
+      description: "Software test category only.",
+      order: 1,
+      published: true
+    },
+    expected: 201
+  });
+  const learnCategoryId = result.data.item._id;
+  const duaFixture = {
+    title: "TEST PLACEHOLDER Dua Learning Record",
+    arabicText: "[ADMIN MUST REPLACE — TEST PLACEHOLDER]",
+    banglaMeaning:
+      "পরীক্ষার প্লেসহোল্ডার—প্রকাশের আগে প্রশাসককে প্রতিস্থাপন করতে হবে।",
+    transliteration: "TEST PLACEHOLDER",
+    category: "Test Learning Topic",
+    source: "Automated integration test fixture",
+    reference: "TEST-ONLY-REFERENCE",
+    sourceUrl: "",
+    audioUrl: "",
+    segments: [
+      {
+        arabicPhrase: "[TEST PHRASE ONE]",
+        transliteration: "test phrase one",
+        banglaMeaning: "পরীক্ষার প্রথম অংশ",
+        order: 1
+      },
+      {
+        arabicPhrase: "[TEST PHRASE TWO]",
+        transliteration: "test phrase two",
+        banglaMeaning: "পরীক্ষার দ্বিতীয় অংশ",
+        order: 2
+      }
+    ],
+    featured: true,
+    verified: false,
+    status: "draft"
+  };
+  result = await call("/api/admin/duas", {
+    method: "POST",
+    cookie: adminCookie,
+    body: duaFixture,
+    expected: 201
+  });
+  const duaId = result.data.item._id;
+  const duaSlug = result.data.item.slug;
+  await missingPage(
+    "/learn/duas/" + encodeURIComponent(duaSlug),
+    duaFixture.title
+  );
+  await call("/api/admin/duas/" + duaId, {
+    method: "PATCH",
+    cookie: adminCookie,
+    body: { ...duaFixture, status: "published" },
+    expected: 400
+  });
+  await call("/api/admin/learn-categories/" + learnCategoryId, {
+    method: "PATCH",
+    cookie: adminCookie,
+    body: {
+      module: "duas",
+      name: "Renamed Learning Topic",
+      description: "Software test category only.",
+      order: 1,
+      published: true
+    }
+  });
+  assert.equal((await Dua.findById(duaId))?.category, "Renamed Learning Topic");
+  passed++;
+  const publishedDua = {
+    ...duaFixture,
+    category: "Renamed Learning Topic",
+    verified: true,
+    status: "published"
+  };
+  await call("/api/admin/duas/" + duaId, {
+    method: "PATCH",
+    cookie: adminCookie,
+    body: publishedDua
+  });
+  result = await call("/learn/duas/" + encodeURIComponent(duaSlug));
+  assert.ok(result.text.includes(duaFixture.title));
+  assert.ok(result.text.includes("TEST-ONLY-REFERENCE"));
+  assert.ok(result.text.includes("Learn word by word"));
+  passed += 3;
+  await call("/api/learn/duas/" + duaId + "/progress", {
+    method: "PUT",
+    body: { action: "start" },
+    expected: 401
+  });
+  await call("/api/learn/duas/" + duaId + "/progress", {
+    method: "PUT",
+    cookie: readerCookie,
+    body: { action: "start" }
+  });
+  await call("/api/learn/duas/" + duaId + "/progress", {
+    method: "PUT",
+    cookie: readerCookie,
+    body: { action: "favorite", favorite: true }
+  });
+  await call("/api/learn/duas/" + duaId + "/progress", {
+    method: "PUT",
+    cookie: readerCookie,
+    body: { action: "progress", currentStep: 1 }
+  });
+  result = await call("/api/auth/login", {
+    method: "POST",
+    body: { email: "integration-reader@example.com", password }
+  });
+  const freshReaderCookie = result.response.headers
+    .get("set-cookie")!
+    .split(";")[0];
+  result = await call("/api/learn/duas/" + duaId + "/progress", {
+    cookie: freshReaderCookie
+  });
+  assert.equal(result.data.currentStep, 1);
+  assert.equal(result.data.status, "in-progress");
+  assert.equal(result.data.favorite, true);
+  passed += 3;
+  result = await call("/learn/duas", { cookie: freshReaderCookie });
+  assert.ok(result.text.includes(duaFixture.title));
+  result = await call("/account", { cookie: freshReaderCookie });
+  assert.ok(result.text.includes(duaFixture.title));
+  passed += 2;
+  await call("/api/learn/duas/" + duaId + "/progress", {
+    method: "PUT",
+    cookie: freshReaderCookie,
+    body: { action: "complete" }
+  });
+  assert.equal(
+    (await DuaProgress.findOne({ user: reader._id, dua: duaId }))?.status,
+    "completed"
+  );
+  passed++;
+  await call("/api/admin/learn-categories/" + learnCategoryId, {
+    method: "DELETE",
+    cookie: adminCookie,
+    expected: 409
+  });
   result = await call("/");
   assert.ok(result.text.includes('data-theme="dark"'));
   assert.ok(result.text.includes("noor-theme"));
@@ -537,6 +735,8 @@ async function main() {
   passed += 3;
   for (const route of [
     "/articles",
+    "/learn",
+    "/learn/duas",
     "/categories",
     "/tags",
     "/quotes",
@@ -555,6 +755,8 @@ async function main() {
   for (const section of [
     "",
     "/articles",
+    "/learn",
+    "/duas",
     "/categories",
     "/tags",
     "/quotes",
@@ -569,6 +771,27 @@ async function main() {
   ]) {
     await call("/admin" + section, { cookie: adminCookie });
   }
+  await call("/admin/duas/" + duaId + "/edit", { cookie: adminCookie });
+  await call("/admin/duas/" + duaId + "/preview", { cookie: adminCookie });
+  await call("/api/admin/duas/" + duaId, {
+    method: "PATCH",
+    cookie: adminCookie,
+    body: { ...publishedDua, status: "archived" }
+  });
+  await missingPage(
+    "/learn/duas/" + encodeURIComponent(duaSlug),
+    duaFixture.title
+  );
+  await call("/api/admin/duas/" + duaId, {
+    method: "DELETE",
+    cookie: adminCookie
+  });
+  assert.equal(await DuaProgress.countDocuments({ dua: duaId }), 0);
+  passed++;
+  await call("/api/admin/learn-categories/" + learnCategoryId, {
+    method: "DELETE",
+    cookie: adminCookie
+  });
   await call("/api/articles/" + id + "/interactions", {
     method: "DELETE",
     body: { action: "bookmark" },
@@ -623,6 +846,36 @@ async function main() {
     logout.response.headers.get("set-cookie")?.includes("noor_session=")
   );
   passed++;
+  if (keep) {
+    const previewAdmin = await User.findOne({ role: "super-admin" });
+    assert.ok(previewAdmin);
+    const previewCategory = await LearnCategory.create({
+      module: "duas",
+      name: "TEST PLACEHOLDER",
+      slug: "test-placeholder",
+      description: "Isolated browser QA content only.",
+      order: 1,
+      published: true
+    });
+    const previewDua = await Dua.create({
+      ...duaFixture,
+      slug: "test-placeholder-dua-preview",
+      category: previewCategory.name,
+      featured: true,
+      verified: true,
+      status: "published",
+      author: previewAdmin._id,
+      publishedAt: new Date()
+    });
+    await DuaProgress.create({
+      user: reader._id,
+      dua: previewDua._id,
+      currentStep: 1,
+      status: "in-progress",
+      favorite: true,
+      lastAccessedAt: new Date()
+    });
+  }
   console.info("PASS: " + passed + " production HTTP and MongoDB checks.");
   console.info("Test database is isolated from the existing app database.");
   await mongoose.disconnect();

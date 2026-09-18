@@ -23,3 +23,27 @@ export function parseArticleContent(content: string): ArticleBlock[] {
       return { type: "paragraph", text: block };
     });
 }
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+export function plainArticleToRichHtml(content: string) {
+  return parseArticleContent(content)
+    .map((block) => {
+      if (block.type === "heading") return `<h2>${escapeHtml(block.text)}</h2>`;
+      if (block.type === "quote") {
+        const source = block.source
+          ? `<p><em>— ${escapeHtml(block.source)}</em></p>`
+          : "";
+        return `<blockquote><p>${escapeHtml(block.text).replaceAll("\n", "<br>")}</p>${source}</blockquote>`;
+      }
+      return `<p>${escapeHtml(block.text).replaceAll("\n", "<br>")}</p>`;
+    })
+    .join("");
+}

@@ -9,14 +9,27 @@ import { toCard } from "@/lib/blog";
 import { ArticleCard } from "@/components/ArticleCard";
 import { ProfileForm } from "@/components/ProfileForm";
 import { RemoveBookmark } from "@/components/RemoveBookmark";
+import { DuaProgress } from "@/models/Learn";
+import { ArrowRight, Heart } from "lucide-react";
 export default async function AccountPage() {
   const user = await getSession();
   if (!user) redirect("/login");
   await connectToDatabase();
-  const [profile, bookmarks] = await Promise.all([
+  const [profile, bookmarks, duaProgress] = await Promise.all([
     User.findById(user.id).select("bio").lean(),
     Bookmark.find({ user: user.id, contentType: "article" })
       .sort({ createdAt: -1 })
+      .lean(),
+    DuaProgress.find({
+      user: user.id,
+      $or: [{ favorite: true }, { status: { $ne: "not-started" } }]
+    })
+      .sort({ lastAccessedAt: -1 })
+      .populate({
+        path: "dua",
+        match: { status: "published", verified: true },
+        select: "title slug category"
+      })
       .lean()
   ]);
   const articles = await Article.find({
@@ -64,6 +77,51 @@ export default async function AccountPage() {
             <p>No saved articles yet.</p>
             <Link className="text-link" href="/articles">
               Find something to read
+            </Link>
+          </div>
+        )}
+      </section>
+      <section className="section">
+        <h2>Saved duas & learning progress</h2>
+        <p className="small-note">
+          Open a dua to continue learning or change its saved status.
+        </p>
+        {duaProgress.some((item) => item.dua) ? (
+          <div className="learn-recent-list">
+            {duaProgress
+              .filter((item) => item.dua)
+              .map((item) => {
+                const dua = item.dua as unknown as {
+                  _id: string;
+                  title: string;
+                  slug: string;
+                  category: string;
+                };
+                return (
+                  <Link
+                    href={"/learn/duas/" + encodeURIComponent(dua.slug)}
+                    key={String(item._id)}
+                  >
+                    <span className="learn-list-icon">
+                      <Heart size={17} />
+                    </span>
+                    <span>
+                      <strong>{dua.title}</strong>
+                      <small>
+                        {dua.category} · {String(item.status).replace("-", " ")}
+                        {item.favorite ? " · saved" : ""}
+                      </small>
+                    </span>
+                    <ArrowRight size={15} />
+                  </Link>
+                );
+              })}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <p>No saved or started duas yet.</p>
+            <Link className="text-link" href="/learn/duas">
+              Explore duas
             </Link>
           </div>
         )}
