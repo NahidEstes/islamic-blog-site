@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 
 export function NewsletterForm() {
   const [message, setMessage] = useState("");
@@ -39,7 +40,13 @@ export function NewsletterForm() {
         placeholder="Your email address"
         required
       />
-      <button disabled={pending}>{pending ? "Joining…" : "Subscribe"}</button>
+      <button disabled={pending}>
+        {pending ? (
+          <IlmBanglaLoader variant="inline" label="Joining" />
+        ) : (
+          "Subscribe"
+        )}
+      </button>
       {message && <small role="status">{message}</small>}
     </form>
   );

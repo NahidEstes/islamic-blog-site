@@ -5,6 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { TableKit } from "@tiptap/extension-table";
 import Placeholder from "@tiptap/extension-placeholder";
 import { useState } from "react";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 
 const pasteTags = new Set([
   "P",
@@ -204,11 +205,7 @@ export function RichTextEditor({
   });
 
   if (!editor)
-    return (
-      <div className="rich-editor-loading" aria-live="polite">
-        Loading editor…
-      </div>
-    );
+    return <IlmBanglaLoader variant="section" label="Loading editor" />;
   const activeEditor = editor;
 
   const heading = editor.isActive("heading", { level: 2 })

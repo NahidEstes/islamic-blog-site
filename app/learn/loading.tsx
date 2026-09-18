@@ -1,9 +1,5 @@
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
+
 export default function LearnLoading() {
-  return (
-    <div className="container content-shell">
-      <div className="panel" role="status">
-        Loading learning content…
-      </div>
-    </div>
-  );
+  return <IlmBanglaLoader variant="section" label="Loading learning content" />;
 }

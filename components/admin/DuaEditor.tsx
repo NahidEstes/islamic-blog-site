@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { requestJson } from "@/lib/client";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 
 type Segment = {
   arabicPhrase: string;
@@ -323,7 +324,11 @@ export function DuaEditor({
       </section>
       <div className="action-row">
         <button className="button button-green" disabled={busy}>
-          {busy ? "Saving…" : "Save Dua"}
+          {busy ? (
+            <IlmBanglaLoader variant="inline" label="Saving" />
+          ) : (
+            "Save Dua"
+          )}
         </button>
         {initial?._id && (
           <Link

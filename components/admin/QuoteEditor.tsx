@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { requestJson } from "@/lib/client";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 export type QuoteData = {
   _id?: string;
   quote?: string;
@@ -107,7 +108,11 @@ export function QuoteEditor({ initial = {} }: { initial?: QuoteData }) {
       )}
       <div>
         <button className="button button-green" disabled={busy}>
-          {busy ? "Saving…" : "Save quote"}
+          {busy ? (
+            <IlmBanglaLoader variant="inline" label="Saving" />
+          ) : (
+            "Save quote"
+          )}
         </button>
       </div>
       {message && <p role="status">{message}</p>}

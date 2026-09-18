@@ -541,7 +541,7 @@ async function main() {
     cookie: adminCookie
   });
   const site = {
-    name: "Noor Al-Hidayah",
+    name: "Ilm Bangla",
     description: "Thoughtful Islamic articles in Bangla and English.",
     contactEmail: "editor@example.com",
     footerText: "Carefully sourced reading."

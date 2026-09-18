@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 
 export function ContactForm() {
   const [status, setStatus] = useState("");
@@ -46,7 +47,11 @@ export function ContactForm() {
       </label>
       {status && <p role="status">{status}</p>}
       <Button variant="green" disabled={pending}>
-        {pending ? "Sending…" : "Send message"}
+        {pending ? (
+          <IlmBanglaLoader variant="inline" label="Sending" />
+        ) : (
+          "Send message"
+        )}
       </Button>
     </form>
   );

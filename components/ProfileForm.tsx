@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { requestJson } from "@/lib/client";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 export function ProfileForm({ name, bio }: { name: string; bio: string }) {
   const router = useRouter();
   const [message, setMessage] = useState("");
@@ -39,7 +40,11 @@ export function ProfileForm({ name, bio }: { name: string; bio: string }) {
       </label>
       <div>
         <button className="button button-green" disabled={busy}>
-          Save profile
+          {busy ? (
+            <IlmBanglaLoader variant="inline" label="Saving" />
+          ) : (
+            "Save profile"
+          )}
         </button>
       </div>
       {message && <p role="status">{message}</p>}

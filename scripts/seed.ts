@@ -157,7 +157,7 @@ async function main() {
   );
   const settings = {
     site: {
-      name: "Noor Al-Hidayah",
+      name: "Ilm Bangla",
       description: "Thoughtful Islamic articles in Bangla and English.",
       contactEmail: "",
       footerText:

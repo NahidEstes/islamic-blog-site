@@ -1,4 +1,4 @@
-# Noor Al-Hidayah — Islamic blog
+# Ilm Bangla — Islamic blog
 
 The existing Next.js / React / MongoDB project, simplified into an article-first blog. No new application framework, authentication provider, or duplicate category/tag model.
 

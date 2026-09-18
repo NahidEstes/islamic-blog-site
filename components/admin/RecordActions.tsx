@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { requestJson } from "@/lib/client";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 export function RecordActions({
   endpoint,
   status,
@@ -19,7 +20,8 @@ export function RecordActions({
 }) {
   const router = useRouter();
   const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busyAction, setBusyAction] = useState<"PATCH" | "DELETE" | null>(null);
+  const busy = busyAction !== null;
   async function save(form: FormData) {
     await run("PATCH", Object.fromEntries(form));
   }
@@ -29,7 +31,7 @@ export function RecordActions({
       !confirm("Permanently delete this record? This cannot be undone.")
     )
       return;
-    setBusy(true);
+    setBusyAction(method === "DELETE" ? "DELETE" : "PATCH");
     setMessage("");
     try {
       await requestJson(endpoint, {
@@ -40,7 +42,7 @@ export function RecordActions({
     } catch (e) {
       setMessage((e as Error).message);
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
   return (
@@ -61,7 +63,11 @@ export function RecordActions({
               </select>
             )}
             <button className="button button-outline" disabled={busy}>
-              Save
+              {busyAction === "PATCH" ? (
+                <IlmBanglaLoader variant="inline" label="Saving" />
+              ) : (
+                "Save"
+              )}
             </button>
           </>
         )}
@@ -72,7 +78,11 @@ export function RecordActions({
             onClick={() => run("DELETE")}
             disabled={busy}
           >
-            Delete
+            {busyAction === "DELETE" ? (
+              <IlmBanglaLoader variant="inline" label="Deleting" />
+            ) : (
+              "Delete"
+            )}
           </button>
         )}
       </form>

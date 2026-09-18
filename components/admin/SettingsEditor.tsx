@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { requestJson } from "@/lib/client";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 export function SettingsEditor({
   settingKey,
   initialValue
@@ -65,7 +66,11 @@ export function SettingsEditor({
       {message && <p role="status">{message}</p>}
       <div>
         <button className="button button-green" disabled={busy}>
-          Save settings
+          {busy ? (
+            <IlmBanglaLoader variant="inline" label="Saving" />
+          ) : (
+            "Save settings"
+          )}
         </button>
       </div>
     </form>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { requestJson } from "@/lib/client";
 import { plainArticleToRichHtml } from "@/lib/article-content";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 type ArticleData = {
   _id?: string;
   title?: string;
@@ -30,7 +31,8 @@ export function ArticleEditor({
 }) {
   const router = useRouter();
   const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busyAction, setBusyAction] = useState<"save" | "upload" | null>(null);
+  const busy = busyAction !== null;
   const [image, setImage] = useState(initial.featuredImage ?? "");
   const [language, setLanguage] = useState(initial.language ?? "en");
   const originalPlainContent = initial.content ?? "";
@@ -42,7 +44,7 @@ export function ArticleEditor({
   );
   const [converted, setConverted] = useState(false);
   async function save(form: FormData) {
-    setBusy(true);
+    setBusyAction("save");
     setMessage("");
     try {
       const visibleContent =
@@ -74,12 +76,12 @@ export function ArticleEditor({
     } catch (e) {
       setMessage((e as Error).message);
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
   async function upload(file?: File) {
     if (!file) return;
-    setBusy(true);
+    setBusyAction("upload");
     setMessage("");
     try {
       const form = new FormData();
@@ -94,7 +96,7 @@ export function ArticleEditor({
     } catch (e) {
       setMessage((e as Error).message);
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
   return (
@@ -262,6 +264,11 @@ export function ArticleEditor({
           onChange={(e) => upload(e.target.files?.[0])}
         />
       </label>
+      {busyAction === "upload" && (
+        <p className="small-note">
+          <IlmBanglaLoader variant="inline" label="Uploading image" />
+        </p>
+      )}
       {image && <p className="small-note">Image selected: {image}</p>}
       <div className="form-row">
         <label>
@@ -305,7 +312,11 @@ export function ArticleEditor({
       )}
       <div>
         <button className="button button-green" disabled={busy}>
-          {busy ? "Saving…" : "Save article"}
+          {busyAction === "save" ? (
+            <IlmBanglaLoader variant="inline" label="Saving" />
+          ) : (
+            "Save article"
+          )}
         </button>
       </div>
     </form>

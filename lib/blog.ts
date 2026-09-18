@@ -16,12 +16,19 @@ import {
 import { Types } from "mongoose";
 
 export const defaultSite = {
-  name: "Noor Al-Hidayah",
+  name: "Ilm Bangla",
   description: "Thoughtful Islamic articles in Bangla and English.",
   contactEmail: "",
   footerText:
     "A quiet space for thoughtful Islamic reading. Learn carefully. Reflect deeply."
 };
+
+export function normalizeSiteBrand(site: typeof defaultSite) {
+  return site.name.trim().toLowerCase() === "noor al-hidayah"
+    ? { ...site, name: "Ilm Bangla" }
+    : site;
+}
+
 export const defaultHomepage = {
   introHeading: "Assalamu alaikum wa rahmatullah.",
   introText:
@@ -37,8 +44,12 @@ export const getSettings = cache(async () => {
   const rows = await SiteSetting.find({
     key: { $in: ["site", "homepage"] }
   }).lean();
+  const site = {
+    ...defaultSite,
+    ...rows.find((r) => r.key === "site")?.value
+  } as typeof defaultSite;
   return {
-    site: { ...defaultSite, ...rows.find((r) => r.key === "site")?.value },
+    site: normalizeSiteBrand(site),
     homepage: {
       ...defaultHomepage,
       ...rows.find((r) => r.key === "homepage")?.value

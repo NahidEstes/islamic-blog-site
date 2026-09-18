@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { requestJson } from "@/lib/client";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 export function TaxonomyManager({
   type,
   initial
@@ -53,7 +54,13 @@ export function TaxonomyManager({
       </label>
       <div>
         <button className="button button-green" disabled={busy}>
-          {initial ? "Save changes" : "Create " + type}
+          {busy ? (
+            <IlmBanglaLoader variant="inline" label="Saving" />
+          ) : initial ? (
+            "Save changes"
+          ) : (
+            "Create " + type
+          )}
         </button>
       </div>
       {message && <p role="status">{message}</p>}

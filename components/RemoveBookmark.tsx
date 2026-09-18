@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { requestJson } from "@/lib/client";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 export function RemoveBookmark({ id }: { id: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -23,7 +24,11 @@ export function RemoveBookmark({ id }: { id: string }) {
   return (
     <>
       <button className="button button-ghost" onClick={remove} disabled={busy}>
-        Remove bookmark
+        {busy ? (
+          <IlmBanglaLoader variant="inline" label="Removing" />
+        ) : (
+          "Remove bookmark"
+        )}
       </button>
       {error && <p role="alert">{error}</p>}
     </>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bookmark, Heart } from "lucide-react";
 import { requestJson } from "@/lib/client";
 import { ArticleShare } from "@/components/ArticleShare";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 type State = {
   likes: number;
   liked: boolean;
@@ -33,9 +34,12 @@ export function ArticleInteractions({
     comments: []
   });
   const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busyAction, setBusyAction] = useState<
+    "bookmark" | "like" | "comment" | null
+  >(null);
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(true);
+  const busy = busyAction !== null;
   const endpoint = "/api/articles/" + articleId + "/interactions";
   useEffect(() => {
     let active = true;
@@ -58,7 +62,7 @@ export function ArticleInteractions({
     };
   }, [endpoint, articleId]);
   async function toggle(action: "bookmark" | "like") {
-    setBusy(true);
+    setBusyAction(action);
     setMessage("");
     try {
       setState(
@@ -72,11 +76,11 @@ export function ArticleInteractions({
     } catch (e) {
       setMessage((e as Error).message);
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
   async function comment() {
-    setBusy(true);
+    setBusyAction("comment");
     setMessage("");
     try {
       const data = await requestJson<{ message: string }>(endpoint, {
@@ -88,7 +92,7 @@ export function ArticleInteractions({
     } catch (e) {
       setMessage((e as Error).message);
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
   return (
@@ -103,8 +107,14 @@ export function ArticleInteractions({
                 aria-pressed={state.saved}
                 onClick={() => toggle("bookmark")}
               >
-                <Bookmark size={17} />
-                {state.saved ? "Saved — remove" : "Save article"}
+                {busyAction === "bookmark" ? (
+                  <IlmBanglaLoader variant="inline" label="Updating" />
+                ) : (
+                  <>
+                    <Bookmark size={17} />
+                    {state.saved ? "Saved — remove" : "Save article"}
+                  </>
+                )}
               </button>
               <button
                 className="button button-outline"
@@ -112,8 +122,19 @@ export function ArticleInteractions({
                 aria-pressed={state.liked}
                 onClick={() => toggle("like")}
               >
-                <Heart size={17} />
-                {state.liked ? "Liked" : "Like"} · {loading ? "…" : state.likes}
+                {busyAction === "like" ? (
+                  <IlmBanglaLoader variant="inline" label="Updating" />
+                ) : (
+                  <>
+                    <Heart size={17} />
+                    {state.liked ? "Liked" : "Like"} ·{" "}
+                    {loading ? (
+                      <IlmBanglaLoader variant="inline" label="Loading" />
+                    ) : (
+                      state.likes
+                    )}
+                  </>
+                )}
               </button>
             </>
           ) : (
@@ -122,7 +143,11 @@ export function ArticleInteractions({
                 Log in to save or like
               </Link>
               <span className="small-note">
-                {loading ? "Loading likes…" : state.likes + " likes"}
+                {loading ? (
+                  <IlmBanglaLoader variant="inline" label="Loading likes" />
+                ) : (
+                  state.likes + " likes"
+                )}
               </span>
             </>
           )}
@@ -158,7 +183,11 @@ export function ArticleInteractions({
             </label>
             <div className="comment-submit">
               <button className="button button-green" disabled={busy}>
-                Submit for review
+                {busyAction === "comment" ? (
+                  <IlmBanglaLoader variant="inline" label="Submitting" />
+                ) : (
+                  "Submit for review"
+                )}
               </button>
             </div>
           </form>
@@ -175,7 +204,7 @@ export function ArticleInteractions({
           </p>
         )}
         {loading ? (
-          <p className="small-note">Loading comments…</p>
+          <IlmBanglaLoader variant="section" label="Loading comments" />
         ) : state.comments.length ? (
           state.comments.map((c) => (
             <article className="comment" key={c.id}>

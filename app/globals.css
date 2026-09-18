@@ -2665,10 +2665,9 @@ a:hover {
 }
 .directory-filters {
   display: grid;
-  grid-template-columns: minmax(250px, 1.7fr) minmax(145px, 0.8fr) minmax(
-      135px,
-      0.65fr
-    ) minmax(145px, 0.8fr) auto;
+  grid-template-columns:
+    minmax(250px, 1.7fr) minmax(145px, 0.8fr) minmax(135px, 0.65fr)
+    minmax(145px, 0.8fr) auto;
   gap: 12px;
   align-items: stretch;
 }
@@ -3135,5 +3134,182 @@ a:hover {
   .directory-pagination a,
   .directory-pagination span {
     padding-inline: 9px;
+  }
+}
+
+/* Shared Ilm Bangla loading states */
+.ilm-loader {
+  --loader-bg: #08110e;
+  --loader-surface: #0b1511;
+  --loader-gold: #c9a45c;
+  --loader-green: #0f5a40;
+  --loader-text: #f2efe8;
+  --loader-muted: #a8b0aa;
+  position: relative;
+  isolation: isolate;
+  width: min(100% - 32px, 1180px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  margin-inline: auto;
+  color: var(--loader-text);
+  background: var(--loader-bg);
+}
+.ilm-loader-fullPage {
+  width: 100%;
+  min-height: max(540px, calc(100svh - 85px));
+  border-bottom: 1px solid #22312a;
+}
+.ilm-loader-section {
+  min-height: 300px;
+  margin-block: 32px 54px;
+  border: 1px solid #22312a;
+  border-radius: 12px;
+  box-shadow: 0 22px 70px #0004;
+}
+.ilm-loader::before,
+.ilm-loader::after {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  width: 38%;
+  height: 68%;
+  top: 16%;
+  border: 1px solid #c9a45c26;
+  border-radius: 50% 50% 8px 8px / 22% 22% 8px 8px;
+  box-shadow: 0 0 55px #c9a45c0a;
+}
+.ilm-loader::before {
+  left: -24%;
+}
+.ilm-loader::after {
+  right: -24%;
+}
+.ilm-loader-arch {
+  position: absolute;
+  z-index: -1;
+  width: min(440px, 82vw);
+  height: min(520px, 74%);
+  top: 8%;
+  border: 1px solid #c9a45c42;
+  border-bottom: 0;
+  border-radius: 50% 50% 10px 10px / 25% 25% 10px 10px;
+  box-shadow:
+    inset 0 18px 38px #0f5a400d,
+    0 0 80px #0f5a4014;
+}
+.ilm-loader-arch::before {
+  content: "";
+  position: absolute;
+  inset: 13px;
+  border: 1px solid #0f5a4038;
+  border-bottom: 0;
+  border-radius: inherit;
+}
+.ilm-loader-content {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 42px 24px;
+}
+.ilm-loader-mark {
+  width: 46px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--loader-green);
+  border-radius: 50% 50% 4px 4px;
+  color: var(--loader-gold);
+  box-shadow: 0 0 26px #0f5a4038;
+}
+.ilm-loader-section .ilm-loader-mark {
+  width: 38px;
+  height: 45px;
+}
+.ilm-loader-brand {
+  margin-top: 13px;
+  color: var(--loader-text);
+  font: 600 clamp(24px, 4vw, 36px)/1.2 var(--serif);
+  letter-spacing: 0.02em;
+}
+.ilm-loader-section .ilm-loader-brand {
+  font-size: 25px;
+}
+.ilm-loader-tagline {
+  margin-top: 7px;
+  color: var(--loader-muted);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+.ilm-loader-spinner {
+  width: 56px;
+  height: 56px;
+  display: inline-block;
+  flex: 0 0 auto;
+  margin: 34px 0 18px;
+  border: 3px solid #22312a;
+  border-top-color: var(--loader-gold, #c9a45c);
+  border-right-color: #0f5a40;
+  border-radius: 50%;
+  box-shadow: 0 0 20px #c9a45c1f;
+  animation: ilm-loader-turn 0.9s linear infinite;
+}
+.ilm-loader-section .ilm-loader-spinner {
+  width: 42px;
+  height: 42px;
+  margin: 22px 0 13px;
+  border-width: 2px;
+}
+.ilm-loader-label {
+  color: var(--loader-text);
+  font: 500 17px/1.4 var(--serif);
+  letter-spacing: 0.16em;
+}
+.ilm-loader-note {
+  margin-top: 9px;
+  color: var(--loader-muted);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+.ilm-loader-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+}
+.ilm-loader-inline .ilm-loader-spinner {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  border-width: 2px;
+  box-shadow: none;
+}
+@keyframes ilm-loader-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ilm-loader-spinner {
+    animation: none;
+  }
+}
+@media (max-width: 520px) {
+  .ilm-loader-fullPage {
+    min-height: max(500px, calc(100svh - 76px));
+  }
+  .ilm-loader-section {
+    min-height: 260px;
+    margin-block: 22px 40px;
+  }
+  .ilm-loader-arch {
+    width: 84vw;
+    height: 72%;
+  }
+  .ilm-loader-tagline {
+    letter-spacing: 0.22em;
   }
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bookmark, Check, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { requestJson } from "@/lib/client";
 import type { DuaData } from "@/lib/learn";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 
 type Progress = {
   currentStep: number;
@@ -24,7 +25,10 @@ export function DuaLearning({
   const [active, setActive] = useState(
     Math.min(initial.currentStep, Math.max(0, dua.segments.length - 1))
   );
-  const [busy, setBusy] = useState(false);
+  const [busyAction, setBusyAction] = useState<
+    "start" | "progress" | "complete" | "favorite" | null
+  >(null);
+  const busy = busyAction !== null;
   const [message, setMessage] = useState("");
   async function save(
     action: "start" | "progress" | "complete" | "favorite",
@@ -34,7 +38,7 @@ export function DuaLearning({
       setMessage("Log in to save your learning progress.");
       return;
     }
-    setBusy(true);
+    setBusyAction(action);
     setMessage("");
     try {
       const data = await requestJson<Progress>(
@@ -49,7 +53,7 @@ export function DuaLearning({
     } catch (error) {
       setMessage((error as Error).message);
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
   function next() {
@@ -94,7 +98,13 @@ export function DuaLearning({
           disabled={busy}
           onClick={() => save("start")}
         >
-          <Play size={16} /> Start Learning
+          {busyAction === "start" ? (
+            <IlmBanglaLoader variant="inline" label="Starting" />
+          ) : (
+            <>
+              <Play size={16} /> Start Learning
+            </>
+          )}
         </button>
       )}
       <div className="meaning-step" aria-live="polite">
@@ -125,7 +135,13 @@ export function DuaLearning({
             disabled={busy}
             onClick={next}
           >
-            Mark & Next <ChevronRight size={16} />
+            {busyAction === "progress" ? (
+              <IlmBanglaLoader variant="inline" label="Saving" />
+            ) : (
+              <>
+                Mark & Next <ChevronRight size={16} />
+              </>
+            )}
           </button>
         ) : (
           <button
@@ -133,7 +149,13 @@ export function DuaLearning({
             disabled={busy || progress.status === "completed"}
             onClick={next}
           >
-            <Check size={16} /> Complete
+            {busyAction === "complete" ? (
+              <IlmBanglaLoader variant="inline" label="Completing" />
+            ) : (
+              <>
+                <Check size={16} /> Complete
+              </>
+            )}
           </button>
         )}
       </div>
@@ -145,8 +167,14 @@ export function DuaLearning({
             aria-pressed={progress.favorite}
             onClick={() => save("favorite", { favorite: !progress.favorite })}
           >
-            <Bookmark size={16} />{" "}
-            {progress.favorite ? "Saved — remove" : "Save Dua"}
+            {busyAction === "favorite" ? (
+              <IlmBanglaLoader variant="inline" label="Updating" />
+            ) : (
+              <>
+                <Bookmark size={16} />{" "}
+                {progress.favorite ? "Saved — remove" : "Save Dua"}
+              </>
+            )}
           </button>
         ) : (
           <Link className="button button-outline" href="/login">

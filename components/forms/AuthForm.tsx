@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
@@ -65,11 +66,13 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         </p>
       )}
       <Button variant="green" type="submit" disabled={pending}>
-        {pending
-          ? "Please wait…"
-          : mode === "login"
-            ? "Sign in"
-            : "Create account"}
+        {pending ? (
+          <IlmBanglaLoader variant="inline" label="Please wait" />
+        ) : mode === "login" ? (
+          "Sign in"
+        ) : (
+          "Create account"
+        )}
       </Button>
       <p className="form-foot">
         {mode === "login" ? (
