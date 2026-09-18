@@ -25,6 +25,28 @@ describe("validation", () => {
         category: "Knowledge"
       }).success
     ).toBe(false));
+  it("normalizes an explicitly entered article slug", () => {
+    const result = articleSchema.parse({
+      title: "A valid article title",
+      slug: "  A Custom Article Slug  ",
+      excerpt: "A sufficiently long article excerpt.",
+      content:
+        "This is sufficiently long article content used only for validating the article slug field.",
+      category: "Knowledge"
+    });
+    expect(result.slug).toBe("a-custom-article-slug");
+  });
+  it("rejects a slug without letters or numbers", () =>
+    expect(
+      articleSchema.safeParse({
+        title: "A valid article title",
+        slug: "---",
+        excerpt: "A sufficiently long article excerpt.",
+        content:
+          "This is sufficiently long article content used only for validating the article slug field.",
+        category: "Knowledge"
+      }).success
+    ).toBe(false));
   it("rejects short contact messages", () =>
     expect(
       contactSchema.safeParse({

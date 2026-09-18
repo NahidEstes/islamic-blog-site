@@ -3,11 +3,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { requestJson } from "@/lib/client";
 import { plainArticleToRichHtml } from "@/lib/article-content";
+import { slugify } from "@/lib/utils";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { IlmBanglaLoader } from "@/components/ui/IlmBanglaLoader";
 type ArticleData = {
   _id?: string;
   title?: string;
+  slug?: string;
   excerpt?: string;
   content?: string;
   contentFormat?: "plain" | "rich-html";
@@ -35,6 +37,13 @@ export function ArticleEditor({
   const busy = busyAction !== null;
   const [image, setImage] = useState(initial.featuredImage ?? "");
   const [language, setLanguage] = useState(initial.language ?? "en");
+  const [title, setTitle] = useState(initial.title ?? "");
+  const [slug, setSlug] = useState(
+    initial.slug ?? slugify(initial.title ?? "")
+  );
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(
+    Boolean(initial.slug)
+  );
   const originalPlainContent = initial.content ?? "";
   const [content, setContent] = useState(originalPlainContent);
   const [contentFormat, setContentFormat] = useState<"plain" | "rich-html">(
@@ -117,11 +126,36 @@ export function ArticleEditor({
         <input
           name="title"
           lang={language}
-          defaultValue={initial.title}
+          value={title}
+          onChange={(event) => {
+            const nextTitle = event.target.value;
+            setTitle(nextTitle);
+            if (!slugManuallyEdited) setSlug(slugify(nextTitle));
+          }}
           required
           minLength={5}
           maxLength={180}
         />
+      </label>
+      <label>
+        Slug
+        <input
+          name="slug"
+          value={slug}
+          onChange={(event) => {
+            setSlug(slugify(event.target.value));
+            setSlugManuallyEdited(true);
+          }}
+          required
+          maxLength={180}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder="article-url-slug"
+        />
+        <span className="small-note">
+          Article URL: /articles/{slug || "article-url-slug"}
+        </span>
       </label>
       <label>
         Excerpt

@@ -45,7 +45,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await authorize(request, true);
-    const { language, ...data } = articleSchema.parse(await request.json());
+    const {
+      language,
+      slug: requestedSlug,
+      ...data
+    } = articleSchema.parse(await request.json());
     const prepared = prepareArticleContent(data.content, data.contentFormat);
     if (prepared.tooShort)
       throw new HttpError(
@@ -57,11 +61,15 @@ export async function POST(request: NextRequest) {
         400,
         "Article content is too long after formatting is cleaned."
       );
-    const base = slugify(data.title) || "article";
+    const slug = requestedSlug ?? slugify(data.title);
+    if (!slug)
+      throw new HttpError(
+        400,
+        "Enter a slug or a title containing letters or numbers."
+      );
+    if (await Article.exists({ slug }))
+      throw new HttpError(409, "An article with this slug already exists.");
     await ensureTopics(data.category, data.tags);
-    let slug = base;
-    let suffix = 2;
-    while (await Article.exists({ slug })) slug = base + "-" + suffix++;
     const article = await Article.create({
       ...data,
       content: prepared.content,

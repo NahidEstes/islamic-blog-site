@@ -15,11 +15,13 @@ export async function PATCH(request: NextRequest, { params }: Context) {
   try {
     const user = await authorize(request, true);
     const id = checkedId((await params).id);
-    const { language, ...data } = articleUpdateSchema.parse(
+    const { language, slug, ...data } = articleUpdateSchema.parse(
       await request.json()
     );
     const article = await Article.findById(id);
     if (!article) throw new HttpError(404, "Article not found.");
+    if (slug && (await Article.exists({ slug, _id: { $ne: article._id } })))
+      throw new HttpError(409, "An article with this slug already exists.");
     const storedFormat: ArticleContentFormat =
       article.contentFormat === "rich-html" ? "rich-html" : "plain";
     if (
@@ -53,6 +55,7 @@ export async function PATCH(request: NextRequest, { params }: Context) {
       );
     }
     article.set(data);
+    if (slug) article.slug = slug;
     if (language) article.locale = language;
     if (data.status === "published" && !article.publishedAt)
       article.publishedAt = new Date();

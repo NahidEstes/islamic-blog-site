@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { slugify } from "./utils";
 export const loginSchema = z.object({
   email: z
     .string()
@@ -37,10 +38,20 @@ const plainMetadata = (limit: number) =>
       (value) => !/<\/?[a-z][^>]*>/i.test(value),
       "Use plain text here; HTML is only allowed in the article body."
     );
+export const articleSlugSchema = z
+  .string()
+  .trim()
+  .min(1, "Enter an article slug.")
+  .max(180)
+  .transform(slugify)
+  .pipe(
+    z.string().min(1, "Use letters or numbers in the article slug.").max(180)
+  );
 export const articleSchema = z.object({
   title: plainMetadata(180)
     .transform((value) => value.trim())
     .pipe(z.string().min(5)),
+  slug: articleSlugSchema.optional(),
   excerpt: plainMetadata(400)
     .transform((value) => value.trim())
     .pipe(z.string().min(20)),

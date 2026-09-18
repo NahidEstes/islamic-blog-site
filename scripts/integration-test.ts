@@ -259,6 +259,16 @@ async function main() {
   });
   const id = result.data.article._id;
   const slug = result.data.article.slug;
+  await call("/api/articles", {
+    method: "POST",
+    body: {
+      ...article,
+      title: "A second article requesting the same slug",
+      slug
+    },
+    cookie: adminCookie,
+    expected: 409
+  });
   await missingPage("/articles/" + encodeURIComponent(slug), article.title);
   const publishedResult = await call("/api/articles/" + id, {
     method: "PATCH",

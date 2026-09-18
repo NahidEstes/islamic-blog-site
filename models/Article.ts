@@ -3,7 +3,15 @@ import { Schema, model, models } from "mongoose";
 const ArticleSchema = new Schema(
   {
     title: { type: String, required: true, maxlength: 180 },
-    slug: { type: String, required: true, unique: true, index: true },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+      trim: true,
+      lowercase: true,
+      maxlength: 180
+    },
     excerpt: { type: String, required: true, maxlength: 400 },
     content: { type: String, required: true },
     contentFormat: {
