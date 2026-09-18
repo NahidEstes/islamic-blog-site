@@ -30,6 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: { card: "summary_large_image" }
   };
 }
+//test
 export default async function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
