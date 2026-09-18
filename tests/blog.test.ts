@@ -67,6 +67,23 @@ describe("bilingual blog", () => {
       true
     );
     expect(
+      imageSourceSchema.safeParse(
+        "https://images.pexels.com/photos/7300898/pexels-photo-7300898.jpeg"
+      ).success
+    ).toBe(true);
+    expect(
+      imageSourceSchema.safeParse("https://i.ibb.co/example/article-image.jpg")
+        .success
+    ).toBe(true);
+    expect(
+      imageSourceSchema.safeParse("https://ibb.co/example/article-image.jpg")
+        .success
+    ).toBe(false);
+    expect(
+      imageSourceSchema.safeParse("http://i.ibb.co/example/article-image.jpg")
+        .success
+    ).toBe(false);
+    expect(
       imageSourceSchema.safeParse("/api/media/123456789012345678901234").success
     ).toBe(true);
   });

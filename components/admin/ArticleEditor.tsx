@@ -286,8 +286,12 @@ export function ArticleEditor({
         <input
           value={image}
           onChange={(e) => setImage(e.target.value)}
-          placeholder="/images/blog-books.png"
+          placeholder="https://images.pexels.com/..."
         />
+        <span className="small-note">
+          Use an uploaded image, a /images/ path, or a direct Pexels,
+          Cloudinary, or ImgBB HTTPS URL.
+        </span>
       </label>
       <label>
         Or upload an image (PNG, JPEG, WebP; max 5 MB)

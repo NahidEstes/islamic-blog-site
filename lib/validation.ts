@@ -27,8 +27,10 @@ export const imageSourceSchema = z
       !v ||
       /^\/images\/[\w./-]+$/.test(v) ||
       /^\/api\/media\/[a-f0-9]{24}$/.test(v) ||
-      /^https:\/\/res\.cloudinary\.com\//.test(v),
-    "Use an uploaded image, /images/ path, or HTTPS Cloudinary URL."
+      /^https:\/\/res\.cloudinary\.com\//.test(v) ||
+      /^https:\/\/images\.pexels\.com\//.test(v) ||
+      /^https:\/\/i\.ibb\.co\//.test(v),
+    "Use an uploaded image, /images/ path, or an approved HTTPS image URL."
   );
 const plainMetadata = (limit: number) =>
   z
