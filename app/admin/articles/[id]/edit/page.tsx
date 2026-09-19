@@ -19,25 +19,20 @@ export default async function EditArticle({
   const categories = await getTaxonomies("category");
   const tags = await getTaxonomies("tag");
   return (
-    <>
-      <div className="admin-title">
-        <h1>Edit article</h1>
-      </div>
-      <ArticleEditor
-        initial={JSON.parse(
-          JSON.stringify({
-            ...article,
-            content:
-              contentFormat === "rich-html"
-                ? sanitizeArticleHtml(String(article.content))
-                : article.content,
-            contentFormat,
-            language: article.locale ?? "en"
-          })
-        )}
-        categories={categories.map((c) => c.name)}
-        tags={tags.map((t) => t.name)}
-      />
-    </>
+    <ArticleEditor
+      initial={JSON.parse(
+        JSON.stringify({
+          ...article,
+          content:
+            contentFormat === "rich-html"
+              ? sanitizeArticleHtml(String(article.content))
+              : article.content,
+          contentFormat,
+          language: article.locale ?? "en"
+        })
+      )}
+      categories={categories.map((c) => c.name)}
+      tags={tags.map((t) => t.name)}
+    />
   );
 }

@@ -259,6 +259,18 @@ async function main() {
   });
   const id = result.data.article._id;
   const slug = result.data.article.slug;
+  result = await call("/admin/articles/" + id + "/edit", {
+    cookie: adminCookie
+  });
+  assert.ok(result.text.includes("Article Editor"));
+  assert.ok(result.text.includes("Save Draft"));
+  assert.ok(result.text.includes("SEO (Search Engine Optimization)"));
+  result = await call("/admin/articles/" + id + "/preview", {
+    cookie: adminCookie
+  });
+  assert.ok(result.text.includes(article.title));
+  assert.ok(result.text.includes("Private Preview"));
+  passed += 5;
   await call("/api/articles", {
     method: "POST",
     body: {

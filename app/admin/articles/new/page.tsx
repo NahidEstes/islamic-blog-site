@@ -6,14 +6,9 @@ export default async function NewArticlePage() {
     getTaxonomies("tag")
   ]);
   return (
-    <>
-      <div className="admin-title">
-        <h1>Create article</h1>
-      </div>
-      <ArticleEditor
-        categories={categories.map((c) => c.name)}
-        tags={tags.map((t) => t.name)}
-      />
-    </>
+    <ArticleEditor
+      categories={categories.map((c) => c.name)}
+      tags={tags.map((t) => t.name)}
+    />
   );
 }

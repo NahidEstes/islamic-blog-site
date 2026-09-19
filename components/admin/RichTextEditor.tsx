@@ -138,11 +138,17 @@ function ToolbarButton({
 export function RichTextEditor({
   content,
   language,
+  wordCount,
+  statusText,
+  statusReady,
   onChange,
   onNotice
 }: {
   content: string;
   language: string;
+  wordCount: number;
+  statusText: string;
+  statusReady: boolean;
   onChange: (html: string) => void;
   onNotice: (message: string) => void;
 }) {
@@ -467,6 +473,13 @@ export function RichTextEditor({
         />
       </div>
       <EditorContent editor={editor} />
+      <div className="rich-editor-statusbar">
+        <span>Word count: {wordCount}</span>
+        <span className={statusReady ? "is-ready" : ""}>
+          <span aria-hidden="true">{statusReady ? "●" : "○"}</span>
+          {statusText}
+        </span>
+      </div>
     </div>
   );
 }
